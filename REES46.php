@@ -189,6 +189,9 @@ class REES46 {
 		}
 		$data['limit'] = $limit;
 		$data['recommender_type'] = $type;
+		if(isset($params['locations']) && !is_null($params['locations']) && $params['locations'] != '') {
+			$data['locations'] = $params['locations'];
+		}
 		$data = $this->append_it_with_service_data($data);
 
 		assert(is_array($data));
@@ -216,27 +219,33 @@ class REES46 {
 		srand((double) microtime() * 1000000);
 		$boundary = "---------------------------" . substr(md5(rand(0, 32000)), 0, 10);
 
+		$post = '';
 
 		$crlf = "\r\n";
 
-		$post .="--$boundary";
+		/*$post .="--$boundary";
 		foreach ($data AS $index => $value) {
 			$post .= $crlf . "Content-Disposition: form-data; name=\"$index\"\r\n";
 			$post .= "\r\n$value\r\n";
 			$post .="--$boundary";
 		}
-		$post.="--\r\n\r\n";
-
+		$post.="--\r\n\r\n";*/
+		
+		$post .= http_build_query($data);
+		
 		$clength = strlen($post);
 
 		$request = "POST /$method HTTP/1.1$crlf";
 		$request .= "Host: " . self::API_URL . $crlf;
 		$request .= "Accept: */*$crlf";
 		$request .= "Content-Length: $clength$crlf";
+		$request .= "Cache-Control:no-cache$crlf";
 		$request .= "Expect: 100-continue$crlf";
+		$request .= "Pragma:no-cache$crlf";
 		$request .= "Connection: Close$crlf";
-		$request .= "Content-Type: multipart/form-data, boundary=$boundary$crlf$crlf";
+		$request .= "Content-Type: application/x-www-form-urlencoded$crlf$crlf";
 		$request .= $post;
+		$request .= "$crlf$crlf";
 
 		if (($fp = @fsockopen(self::API_URL, 80, $errno, $errstr)) == false) {
 			error_log("Error request method '{$method}'\n\nURL:\n" . self::API_URL . "\n\nData:\n'{$post}'\n\nError No:\n{$errno}\n\nError string:\n'{$errstr}'");
@@ -276,7 +285,7 @@ class REES46 {
 
 			case 'POST':
 				curl_setopt($ch, CURLOPT_POST, true);
-				curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+				curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
 				break;
 		}
 
@@ -284,7 +293,8 @@ class REES46 {
 		$response = curl_exec($ch);
 		$response_info = curl_getinfo($ch);
 		curl_close($ch);
-// Clean response
+
+		// Clean response
 		$response = trim($response);
 
 		if (strpos($response_info['content_type'], 'application/json') !== false) {
@@ -297,7 +307,8 @@ class REES46 {
 
 			$data_as_string = var_export($data, true);
 			$response_as_string = var_export($response_info, true);
-			error_log("Error request method '{$method}'\n\nURL:\n{$url}\n\nData:\n'{$data_as_string}'\n\nResponse Info:\n{$response_as_string}\n\nResponse:\n'{$response_body->message}'");
+			$response_message = isset($response_body->message) ? $response_body->message : '';
+			error_log("Error request method '{$method}'\n\nURL:\n{$url}\n\nData:\n'{$data_as_string}'\n\nResponse Info:\n{$response_as_string}\n\nResponse:\n'{$response_message}'");
 			return false;
 		}
 		return $response_body;

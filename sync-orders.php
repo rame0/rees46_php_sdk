@@ -8,71 +8,22 @@
  *
  * Assumes you have tables in database:
  * orders:
- *   id:integer
- *   user_id:integer
- *   total_sum:integer
- *   created_at:datetime
- * order_items:
- *   order_id:integer
- *   item_id:integer
- *   price:integer
- *   amount:integer
- * items:
- *   id:integer
- *   price:integer
- *   category_id:integer
- *   is_available:boolean
+ *   id:string
+ *   status:integer
  *
  */
 
 // Edit these parameters according to your shop credentials
-//define('SHOP_ID', 'b6ef5e0003904ba8245eb7aac0c286');
-//define('SHOP_SECRET', '14fd926018b405cbb18c24b6724a5ad8');
+define('SHOP_ID', 'c60f487cca799ab42f1e0127b4f232');
+define('SHOP_SECRET', '7f2df453d92cd48c5e52c1aeb9f4c812');
 
 // Here prepare your orders data from your database.
 // In this example we just prepare array of data instead of database data.
 // So you need to change this code according your shop architecture.
 $orders = array(
-	array(
-		'id' => 'order3',
-		'user_id' => 334,
-		'date' => 1406057494,
-		'items' => array(
-			array(
-				'id' => 105,
-				'price' => 3400,
-				'category_uniqid' => 14,
-				'is_available' => 1,
-				'amount' => 2
-			),
-			array(
-				'id' => 106,
-				'price' => 3100,
-				'category_uniqid' => 19,
-				'is_available' => 1,
-				'amount' => 1
-			)
-		)
-	),
-	array(
-		'id' => 'order4',
-		'user_id' => 18,
-		'date' => 1406057499,
-		'items' => array(
-			array(
-				'id' => 107,
-				'price' => 3400,
-				'category_uniqid' => 14,
-				'is_available' => 1,
-				'amount' => 1
-			)
-		)
-	)
+	array( 'id' => '153404', 'status' => 0 ),
+	array( 'id' => 'order4', 'status' => 1 )
 );
-
-
-define('SHOP_ID', '3519c7e25292c23664766e6050e2d1');
-define('SHOP_SECRET', '086dcc7eb9886e18de0314e6c2006dcf');
 
 
 // ** Prepare CURL object
@@ -81,7 +32,7 @@ $ch = curl_init();
 curl_setopt($ch, CURLOPT_HEADER, 0);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_POST, true);
-curl_setopt($ch, CURLOPT_URL, 'http://api.rees46.com/import/orders');
+curl_setopt($ch, CURLOPT_URL, 'http://api.rees46.com/import/sync_orders');
 curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
 
 // Split orders by 1000 per request
